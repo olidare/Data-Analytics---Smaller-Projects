@@ -1,1 +1,7 @@
-A quick Data Cleaning and Exploration Exercise I did with Kaggle Data for Rappi
+A place to contain smaller pieces of work done as part of my Data Analyst Learning Journey.
+
+-
+
+- Python Cheatsheet
+
+- Examples of good SQL 
