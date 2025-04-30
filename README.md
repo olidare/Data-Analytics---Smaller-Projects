@@ -4,10 +4,10 @@ Resources
 #### Rappi.ipynb
  - A quick Kaggle Data Cleaning and Exploration exercise done on Rappi Sales Data.
    
-#### good_python.py
+#### pandas_cheatsheet.py
 - Python Pandas Cheatsheet.
 - Data Manipulation
 - Visualisations with MatPlotLib, Plotly and Seaborn
 
-#### gooodsql.sql
+#### sql_cheatsheet.sql
 - A collection of some of the better/ more challenging SQL I have written.
