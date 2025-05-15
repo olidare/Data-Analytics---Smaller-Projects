@@ -1,6 +1,9 @@
 A place to contain smaller pieces of work done as part of my Data Analyst Learning Journey.
 
 Resources
+#### Netflix
+- Investigating a Netflix Dataset using both Pandas and then SQL.
+
 #### Rappi.ipynb
  - A quick Kaggle Data Cleaning and Exploration exercise done on Rappi Sales Data.
    
