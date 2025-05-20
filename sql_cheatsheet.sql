@@ -1,5 +1,212 @@
 SQL SHEET
 
+#### CTEs ####
+Def: 
+  
+#### Windows Functions #####
+
+
+#### SELF JOINS #####
+
+
+#### UNION ####
+  
+#### PIVOT #####
+
+The PIVOT operation is typically used when you need to convert row data into columns for better analytical insight, often employing custom SQL queries or stored procedures. 
+The syntax involves using aggregate functions and CASE statements to simulate a PIVOT table.
+
+The PIVOT clause in MySQL is not natively supported as a direct SQL command but can be simulated to transform rows into columns.
+  
+In Postgres (use dedicated function):
+SELECT 
+  UNNEST(ARRAY['likes', 'shares', 'comments']),
+  UNNEST(ARRAY[100, 20, 30])
+
+In MySQL:
+
+#Basic Example
+SELECT 
+  department,
+  SUM(CASE WHEN month = 'Jan' THEN sales ELSE 0 END) AS Jan_Sales,
+  SUM(CASE WHEN month = 'Feb' THEN sales ELSE 0 END) AS Feb_Sales
+FROM 
+  sales_data
+GROUP BY 
+  department;
+
+# Dynamic Example when number of Columns not known
+SET @sql = NULL;
+SELECT
+  GROUP_CONCAT(DISTINCT
+    CONCAT(
+      'SUM(CASE WHEN month = ''',
+      month,
+      ''' THEN sales ELSE 0 END) AS ',
+      CONCAT(month, '_Sales')
+    )
+  ) INTO @sql
+FROM sales_data;
+
+SET @sql = CONCAT('SELECT department, ', @sql, ' FROM sales_data GROUP BY department');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+#### STORED PROCEDURE // FUNCTION ####
+
+# DEF #
+A stored procedure is a saved, precompiled block of SQL code that you can call and execute whenever you need it — optionally passing in parameters.
+Functions are designed to encapsulate calculations or transformations and return the result.
+
+Functions follow the computer-science definition in that they MUST return a value and cannot alter the data they receive as parameters (the arguments). 
+Functions are not allowed to change anything, must have at least one parameter, and they must return a value. 
+Stored procs do not have to have a parameter, can change database objects, and do not have to return a value.
+  
+Stored procedures are designed for performing data manipulation and database operations, 
+while functions are designed for returning a single value, often the result of a calculation or transformation
+
+  # PROCEDURE EXAMPLE
+  
+  CREATE PROCEDURE SelectAllCustomers @City nvarchar(30), @PostalCode nvarchar(10)
+  AS
+  SELECT * FROM Customers WHERE City = @City AND PostalCode = @PostalCode
+  GO;
+  
+  EXEC SelectAllCustomers @City = 'London', @PostalCode = 'WA1 1DP';
+
+  
+  # FUNCTION EXAMPLE  
+
+  Let’s say you want a function that calculates an engagement score for each content item based on a weighted formula:
+  engagement_score = (likes_count * 2) + (comments_count * 3) + (shares_count * 5)
+
+  # Build Function
+    DELIMITER $$
+  
+  CREATE FUNCTION calculate_engagement_score(
+    likes INT,
+    comments INT,
+    shares INT
+  )
+  RETURNS INT
+  DETERMINISTIC
+  BEGIN
+    DECLARE engagement_score INT;
+  
+    SET engagement_score = (likes * 2) + (comments * 3) + (shares * 5);
+  
+    RETURN engagement_score;
+  END$$
+  
+  DELIMITER ;
+
+  # How to Use:
+    SELECT 
+  content_id,
+  content_type,
+  likes_count,
+  comments_count,
+  shares_count,
+  calculate_engagement_score(likes_count, comments_count, shares_count) AS engagement_score
+FROM fct_creator_content;
+
+
+
+#### DELIMETER ####
+
+When you're writing multi-statement SQL blocks like stored procedures, functions, or triggers — you need a way to tell MySQL where the end of your entire block is.
+
+By default, MySQL considers the semicolon ; as the end of a statement.
+But inside a stored procedure or function, you're going to use a bunch of semicolons to separate individual statements.
+So — you need to temporarily change the statement terminator to something else while you're defining the procedure/function
+
+  DELIMITER $$     -- Tell MySQL: "For now, don't treat semicolons as end of statement."
+
+CREATE FUNCTION my_function()
+RETURNS INT
+BEGIN
+  DECLARE my_variable INT;
+  SET my_variable = 10;
+  RETURN my_variable;
+END$$           -- Here's the actual end of the entire function definition.
+
+DELIMITER ;     -- Put it back to normal for regular SQL statements.
+
+  
+#### INDEXING ####
+
+
+  
+
+
+
+#### SQL INJECTION ####
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+###################################################################################################################################################
+
+  # Example Interview Qs
+
+###################################################################################################################################################
+  
+#For content published in May 2024, which creator IDs show the highest new follower growth within each content type? 
+  #If a creator published multiple of the same content type, we want to look at the total new follower growth from that content type.
+
+
+WITH follower_growth AS (
+  SELECT 
+    fcc.creator_id,
+    dc.creator_name,
+    fcc.content_type,
+    SUM(fcc.new_followers_count) AS total_new_followers
+  FROM fct_creator_content AS fcc
+  INNER JOIN dim_creator AS dc 
+    ON fcc.creator_id = dc.creator_id
+  WHERE fcc.published_date BETWEEN '2024-05-01' AND '2024-05-31'
+  GROUP BY fcc.creator_id, dc.creator_name, fcc.content_type
+)
+
+SELECT 
+  creator_name,
+  content_type,
+  total_new_followers
+FROM (
+  SELECT 
+    creator_name,
+    content_type,
+    total_new_followers,
+    RANK() OVER (PARTITION BY content_type ORDER BY total_new_followers DESC) AS rn
+  FROM follower_growth
+) ranked
+WHERE rn = 1;e
+
+# Determine the average marketing spend per new subscriber for each country in Q1 2024 by rounding up to the nearest whole number to evaluate campaign efficiency.
+SELECT dc.country_name,
+  CEIL(SUM(fms.amount_spent) * 1.0 / NULLIF(SUM(fds.num_new_subscribers), 0)) AS marketing_spend_per_subscribers
+   FROM fact_daily_subscriptions as fds 
+   INNER JOIN dimension_country as dc ON fds.country_id = dc.country_id
+   INNER JOIN fact_marketing_spend as fms ON fms.country_id = dc.country_id  
+   WHERE fds.signup_date between '2024-01-01' and '2024-03-31' 
+   AND fms.campaign_date between '2024-01-01' and '2024-03-31'  
+   GROUP BY dc.country_name
+
+
+  
 SELECT * FROM customers
 WHERE (age BETWEEN 18 AND 22) AND 
 (state IN ('Tasmania', 'Victoria', 'Queensland')) AND
@@ -139,14 +346,6 @@ SELECT COUNT(company_id) as duplicate_companies
 FROM linkedin_cte
 ;
 
-# Determine the average marketing spend per new subscriber for each country in Q1 2024 by rounding up to the nearest whole number to evaluate campaign efficiency.
-SELECT dc.country_name,
-  CEIL(SUM(fms.amount_spent) * 1.0 / NULLIF(SUM(fds.num_new_subscribers), 0)) AS marketing_spend_per_subscribers
-   FROM fact_daily_subscriptions as fds 
-   INNER JOIN dimension_country as dc ON fds.country_id = dc.country_id
-   INNER JOIN fact_marketing_spend as fms ON fms.country_id = dc.country_id  
-   WHERE fds.signup_date between '2024-01-01' and '2024-03-31' 
-   AND fms.campaign_date between '2024-01-01' and '2024-03-31'  
-   GROUP BY dc.country_name
+
 
 
