@@ -48,7 +48,42 @@ INTERSECT: Returns common rows from two queries.
 INNER JOIN: Combines matching rows from two tables based on a condition.
 
 
-  
+📗 CTE vs WINDOW FUNCTION:
+
+ Use a CTE when:
+
+* You need to build an intermediate aggregated or filtered dataset
+* You have multi-step logic where step 1 feeds step 2
+* You’re reusing a result across multiple queries within a bigger one
+* You want to clean up deeply nested subqueries 
+
+Use a window function when:
+
+* You need running totals, rankings, moving averages
+* You want to calculate things like row_number, rank, dense_rank, lag, lead, sum over a partition
+* You need to keep all the individual rows intact while adding extra insights from other rows in their "window" (partition)
+
+  e.g.
+WITH follower_ranks AS (
+  SELECT 
+    creator_id,
+    content_type,
+    new_followers_count,
+    RANK() OVER (PARTITION BY content_type ORDER BY new_followers_count DESC) AS rank_in_type
+  FROM fct_creator_content
+)
+SELECT * FROM follower_ranks
+WHERE rank_in_type = 1;
+
+📗 WINDOW CLAUSE vs WINDOW FUNCTION:
+
+Window Function	A special type of function that performs a calculation across a set of rows related to the current row (the “window”)	RANK() OVER (...)
+Window Clause	The part inside the OVER (...) that defines how the “window” of rows is constructed 
+  — i.e. how to partition (group) and order rows for the window function	OVER (PARTITION BY content_type ORDER BY new_followers_count DESC)
+
+The window function is what you're calculating (RANK, SUM, etc).
+The window clause defines how to group/order the data for the calculation.
+
 
 ###################################################################################################################################################
 
@@ -62,6 +97,44 @@ Def:
   
 #### Windows Functions #####
 
+Name of the window being referenced by the current window. The referenced window must be among the windows defined in the WINDOW clause.
+
+The other arguments are:
+* PARTITION BY that divides the query result set into partitions.
+* ORDER BY that defines the logical order of the rows within each partition of the result set.
+* ROWS/RANGE that limits the rows within the partition by specifying start and end points within the partition.
+    
+Window functions differ from regular aggregate functions as they perform operations across a set of table rows related to the current row without collapsing them into a single output row. 
+The `OVER` clause is crucial here, as it specifies the window over which the function operates.
+
+# Basic Window Function - Rank #
+SELECT employee_id, salary,
+  RANK() OVER (ORDER BY salary DESC) AS salary_rank
+FROM employees;
+
+The `WINDOW` clause is used in conjunction with window functions like `ROW_NUMBER()`, `RANK()`, or `SUM()` to perform calculations over a specified set of rows. 
+It simplifies queries by allowing the reuse of window definitions across multiple functions.
+
+# Sum with Windows Clause #
+  
+SELECT employee_id, department_id, salary,
+       SUM(salary) OVER emp_window AS total_salary
+FROM employees
+WINDOW emp_window AS (PARTITION BY department_id ORDER BY salary);
+
+# Running total of followers per content_type  #
+  
+SELECT 
+  content_type,
+  published_date,
+  new_followers_count,
+  SUM(new_followers_count) OVER (PARTITION BY content_type ORDER BY published_date) AS running_total_followers
+FROM fct_creator_content;
+
+# Lag #
+
+# Lead #
+    
 
 #### SELF JOINS #####
 
