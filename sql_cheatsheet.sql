@@ -139,4 +139,14 @@ SELECT COUNT(company_id) as duplicate_companies
 FROM linkedin_cte
 ;
 
+# Determine the average marketing spend per new subscriber for each country in Q1 2024 by rounding up to the nearest whole number to evaluate campaign efficiency.
+SELECT dc.country_name,
+  CEIL(SUM(fms.amount_spent) * 1.0 / NULLIF(SUM(fds.num_new_subscribers), 0)) AS marketing_spend_per_subscribers
+   FROM fact_daily_subscriptions as fds 
+   INNER JOIN dimension_country as dc ON fds.country_id = dc.country_id
+   INNER JOIN fact_marketing_spend as fms ON fms.country_id = dc.country_id  
+   WHERE fds.signup_date between '2024-01-01' and '2024-03-31' 
+   AND fms.campaign_date between '2024-01-01' and '2024-03-31'  
+   GROUP BY dc.country_name
+
 
