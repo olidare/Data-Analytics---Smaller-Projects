@@ -139,9 +139,34 @@ DELIMITER ;     -- Put it back to normal for regular SQL statements.
 
 
   
+#### ANALYZE ####
+
+`ANALYZE TABLE` is typically used when there are significant changes in the data distribution within a table, such as after a large number of insertions, deletions, or updates.
+It helps ensure that the query optimizer has the most accurate data to make informed decisions.
+
+ANALYZE TABLE orders, customers;
 
 
+#### EXPLAIN ####
 
+The `EXPLAIN` statement in MySQL is a performance optimization tool used to provide insight into how MySQL executes a query. 
+It helps developers understand the execution plan and optimize queries for better performance.
+
+  
+EXPLAIN SELECT orders.order_id, customers.customer_name
+FROM orders
+JOIN customers ON orders.customer_id = customers.customer_id
+WHERE orders.date > '2023-01-01';
+
+#### EXPLAIN ANALYZE ####
+
+The MySQL EXPLAIN ANALYZE command provides information about the query execution plan, including specifics about the optimizer's decisions, access methods, and estimated costs. 
+  EXPLAIN ANALYZE is a useful tool for query performance study since it performs the query and offers runtime information, unlike EXPLAIN, which only presents the process plan without actually executing the query.
+  
+EXPLAIN ANALYZE SELECT * FROM table_name WHERE condition;
+
+
+  
 #### SQL INJECTION ####
   
 
