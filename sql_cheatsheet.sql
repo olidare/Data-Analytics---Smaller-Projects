@@ -53,6 +53,16 @@ LAG/LEAD	                                                            ROWS BETWEE
 Accesses a specific row at a fixed offset from the current row	    Defines a frame (range of rows) to perform an aggregation over, relative to the current row
 Typically used to compare current vs previous/next value	          Typically used for running totals, moving averages, cumulative metrics
 Works like: “give me the value 1 row back (or ahead)”	              Works like: “calculate over a range of rows around me”
+
+SELECT
+  date,
+  close,
+    LAG(close) OVER (ORDER BY date) AS previous_close,
+    LAG(close, 3) OVER (ORDER BY date) AS three_months_ago_close,
+  close - LAG(close, 3) OVER (ORDER BY date) AS three_month_diff,
+  close - LAG(close) OVER (ORDER BY date) AS one_month_diff
+FROM stock_prices
+
   
 📗 CTE vs WINDOW FUNCTION:
 
@@ -613,5 +623,23 @@ ROUND(total_amount * 100.0 / SUM(total_amount) OVER(), 2) as total_sales_partici
   FROM orders
 GROUP BY order_id
 
+
+#### Question Y-on-Y Growth Rate
+
+WITH cte as (
+SELECT Extract(YEAR FROM transaction_date) AS year,
+product_id,
+spend,
+LAG(spend) OVER (PARTITION BY product_id ORDER BY transaction_date) as prev_year_spend
+FROM user_transactions
+)
+
+SELECT Year, product_id	
+,spend as curr_year_spend,	
+prev_year_spend,
+ ROUND(100*(spend-prev_year_spend) /prev_year_spend,2) 
+ as  yoy_rate
+FROM cte
+;
 
 
