@@ -87,7 +87,7 @@ The window clause defines how to group/order the data for the calculation.
 
 ###################################################################################################################################################
 
-  # Useful Functions
+  # Useful Function
 
 ###################################################################################################################################################
 
@@ -137,6 +137,8 @@ FROM fct_creator_content;
 
 # ROWS BETWEEN lower_bound AND upper_bound #
 
+ref: https://learnsql.com/blog/sql-window-functions-rows-clause/ 
+  
 The bounds can be any of these five options:
 
 * UNBOUNDED PRECEDING – All rows before the current row.
@@ -162,6 +164,58 @@ ex2 - We want to calculate the three-days moving average temperature separately 
   FROM weather
   ORDER BY city, date;
 
+  ex3 - we’ll calculate the total precipitation for the last three days (i.e. a three-day running total) separately for two cities.
+
+  SELECT city, date, precipitation,
+    SUM(precipitation) OVER (
+      PARTITION BY city
+      ORDER BY date
+      ROWS 2 PRECEDING) running_total_3d_city
+FROM weather
+ORDER BY city, date;
+  
+  ex4 -  we define the window frame as UNBOUNDED PRECEDING to include all records up to the current one inclusively.
+
+SELECT social_network, date, new_subscribers,
+    SUM(new_subscribers) OVER (
+      PARTITION BY social_network
+      ORDER BY date
+      ROWS UNBOUNDED PRECEDING) running_total_network
+FROM subscribers
+ORDER BY social_network, date;
+
+  ex5 - display the first and the last value of a specific set of records using window functions and the ROWS clause. 
+
+  SELECT social_network, date, new_subscribers,
+    FIRST_VALUE(new_subscribers) OVER(
+      PARTITION BY social_network
+      ORDER BY date) AS first_day,
+    LAST_VALUE(new_subscribers) OVER(
+      PARTITION BY social_network
+      ORDER BY date
+      ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_day
+FROM subscribers
+ORDER BY social_network, date;
+
+we do specify the window frame with the LAST_VALUE() function because the default option would use the current row value as the last value for each record;
+this is not what we are looking for in this example. 
+We specify the window frame as ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING to make sure all records are considered.
+
+  And here’s the result set:
+
+date	social_network	new_subscribers	first_day	last_day
+2021-09-01	Facebook	12	12	28
+2021-09-02	Facebook	23	12	28
+2021-09-03	Facebook	25	12	28
+2021-09-04	Facebook	28	12	28
+2021-09-01	Instagram	40	40	85
+2021-09-02	Instagram	67	40	85
+2021-09-03	Instagram	34	40	85
+2021-09-04	Instagram	85	40	85
+2021-09-01	LinkedIn	5	5	20
+2021-09-02	LinkedIn	2	5	20
+2021-09-03	LinkedIn	10	5	20
+2021-09-04	LinkedIn	20	5	20
   
 #### SELF JOINS #####
 
