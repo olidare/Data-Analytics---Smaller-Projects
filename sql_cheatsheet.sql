@@ -47,7 +47,13 @@ COALESCE: Returns the first non-NULL value from a list of expressions, accepting
 INTERSECT: Returns common rows from two queries.
 INNER JOIN: Combines matching rows from two tables based on a condition.
 
-
+  
+📗 LAG/LEAD vs BETWEEN WINDOW FRAME:
+LAG/LEAD	                                                            ROWS BETWEEN ...
+Accesses a specific row at a fixed offset from the current row	    Defines a frame (range of rows) to perform an aggregation over, relative to the current row
+Typically used to compare current vs previous/next value	          Typically used for running totals, moving averages, cumulative metrics
+Works like: “give me the value 1 row back (or ahead)”	              Works like: “calculate over a range of rows around me”
+  
 📗 CTE vs WINDOW FUNCTION:
 
  Use a CTE when:
@@ -131,10 +137,24 @@ SELECT
   SUM(new_followers_count) OVER (PARTITION BY content_type ORDER BY published_date) AS running_total_followers
 FROM fct_creator_content;
 
-# Lag #
+# Lag & Lead #
 
-# Lead #
+LEAD() and LAG() are time-series window functions used to access data from rows that come after, or before the current row within a result set based on a specific column order.
 
+  
+
+# RANK #
+
+SELECT 
+ artist_name, 
+ concert_revenue, 
+ ROW_NUMBER() OVER (ORDER BY concert_revenue) AS row_num,
+ RANK() OVER (ORDER BY concert_revenue) AS rank_num,
+ DENSE_RANK() OVER (ORDER BY concert_revenue) AS dense_rank_num
+FROM concerts;
+
+
+  
 # ROWS BETWEEN lower_bound AND upper_bound #
 
 ref: https://learnsql.com/blog/sql-window-functions-rows-clause/ 
@@ -582,6 +602,16 @@ SELECT COUNT(company_id) as duplicate_companies
 FROM linkedin_cte
 ;
 
+# Question - calculating percentages within a window function.
+
+Select all the orders. For each order, show its ID, the total amount, and the percentage participation in all the sales. 
+Name the last column total_sales_participation. Round the percentages to two decimal points.
+To compute the percentage participation in all the sales, you'll have to divide the total_amount of the order by the sum of all the total amount across all the orders
+
+SELECT order_id, total_amount, 
+ROUND(total_amount * 100.0 / SUM(total_amount) OVER(), 2) as total_sales_participation
+  FROM orders
+GROUP BY order_id
 
 
 
