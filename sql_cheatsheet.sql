@@ -134,8 +134,35 @@ FROM fct_creator_content;
 # Lag #
 
 # Lead #
-    
 
+# ROWS BETWEEN lower_bound AND upper_bound #
+
+The bounds can be any of these five options:
+
+* UNBOUNDED PRECEDING – All rows before the current row.
+* n PRECEDING – n rows before the current row.
+* CURRENT ROW – Just the current row.
+* n FOLLOWING – n rows after the current row.
+* UNBOUNDED FOLLOWING – All rows after the current row.
+
+ex1 - we want to add another column that shows the total revenue from the first date up to the current row’s date (i.e. running total). 
+SELECT date, revenue,
+    SUM(revenue) OVER (
+      ORDER BY date
+      ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) running_total
+FROM sales
+ORDER BY date;
+
+ex2 - We want to calculate the three-days moving average temperature separately for each city. 
+  SELECT city, date, temperature,
+      ROUND(AVG(temperature) OVER (
+        PARTITION BY city
+        ORDER BY date DESC
+        ROWS BETWEEN CURRENT ROW AND 2 FOLLOWING), 1) mov_avg_3d_city
+  FROM weather
+  ORDER BY city, date;
+
+  
 #### SELF JOINS #####
 
 
