@@ -9,7 +9,6 @@ SQL SHEET
 ###################################################################################################################################################
   
 
-
 📗 RANK vs DENSE_RANK:
 RANK: Provides a ranking with gaps if there are ties.
 DENSE_RANK: Provides a ranking without gaps, even in the case of ties.
@@ -31,6 +30,10 @@ DELETE: Removes rows, with the option to filter.
 DROP: Removes the entire table or database.
 TRUNCATE: Deletes all rows but keeps the table structure.
 
+📗 COUNT() vs COUNT(*)
+COUNT(salary): — counts only rows where salary is not NULL
+COUNT(*): — counts total number of rows in the result set
+  
 📗 CTE vs TEMP TABLE:
 CTE: Temporary result set used within a single query.
 TEMP TABLE: Physical temporary table that persists for the session.
@@ -97,15 +100,15 @@ Window Function	A special type of function that performs a calculation across a 
 Window Clause	The part inside the OVER (...) that defines how the “window” of rows is constructed 
   — i.e. how to partition (group) and order rows for the window function	OVER (PARTITION BY content_type ORDER BY new_followers_count DESC)
 
-The window function is what you're calculating (RANK, SUM, etc).
+The window function is what you're calculating (RANK, SUM, etc)
 The window clause defines how to group/order the data for the calculation.
 
 
-###################################################################################################################################################
+-- ###################################################################################################################################################
 
   # Useful Function
 
-###################################################################################################################################################
+--###################################################################################################################################################
 
   
 #### CTEs ####
