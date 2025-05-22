@@ -1,7 +1,9 @@
 SQL SHEET
 
   
-
+BASIC Qs:
+https://www.testgorilla.com/blog/sql-basic-interview-questions/ 
+  
 ###################################################################################################################################################
 
   # Must Know difference in SQL
@@ -25,7 +27,7 @@ UNION ALL: Combines results without removing duplicates.
 JOIN: Combines columns from multiple tables.
 UNION: Combines rows from multiple tables with similar structure.
 
-📗 DELETE vs DROP vs TRUNCATE:
+📗 DELETE vs DROP vs TRUNCATE: 📝
 DELETE: Removes rows, with the option to filter.
 DROP: Removes the entire table or database.
 TRUNCATE: Deletes all rows but keeps the table structure.
@@ -34,7 +36,7 @@ TRUNCATE: Deletes all rows but keeps the table structure.
 COUNT(salary): — counts only rows where salary is not NULL
 COUNT(*): — counts total number of rows in the result set
   
-📗 CTE vs TEMP TABLE:
+📗 CTE vs TEMP TABLE: 📝
 CTE: Temporary result set used within a single query.
 TEMP TABLE: Physical temporary table that persists for the session.
 
@@ -42,11 +44,11 @@ TEMP TABLE: Physical temporary table that persists for the session.
 SUBQUERIES: Nested queries inside the main query.
 CTE: Can be more readable and used multiple times in a query.
 
-📗 ISNULL vs COALESCE:
+📗 ISNULL vs COALESCE: 📝
 ISNULL: Replaces NULL with a specified value, accepts two parameters.
 COALESCE: Returns the first non-NULL value from a list of expressions, accepting multiple parameters.
 
-📗 INTERSECT vs INNER JOIN:
+📗 INTERSECT vs INNER JOIN: 📝
 INTERSECT: Returns common rows from two queries.
 INNER JOIN: Combines matching rows from two tables based on a condition.
 
@@ -66,6 +68,26 @@ SELECT
   close - LAG(close) OVER (ORDER BY date) AS one_month_diff
 FROM stock_prices
 
+  SELECT
+  date,
+  close,
+  FIRST_VALUE(close) OVER (
+    ORDER BY date 
+    ROWS BETWEEN 1 PRECEDING AND 1 PRECEDING
+  ) AS previous_close,
+  FIRST_VALUE(close) OVER (
+    ORDER BY date 
+    ROWS BETWEEN 3 PRECEDING AND 3 PRECEDING
+  ) AS three_months_ago_close,
+  close - FIRST_VALUE(close) OVER (
+    ORDER BY date 
+    ROWS BETWEEN 3 PRECEDING AND 3 PRECEDING
+  ) AS three_month_diff,
+  close - FIRST_VALUE(close) OVER (
+    ORDER BY date 
+    ROWS BETWEEN 1 PRECEDING AND 1 PRECEDING
+  ) AS one_month_diff
+FROM stock_prices
   
 📗 CTE vs WINDOW FUNCTION:
 
@@ -100,7 +122,7 @@ Window Function	A special type of function that performs a calculation across a 
 Window Clause	The part inside the OVER (...) that defines how the “window” of rows is constructed 
   — i.e. how to partition (group) and order rows for the window function	OVER (PARTITION BY content_type ORDER BY new_followers_count DESC)
 
-The window function is what you're calculating (RANK, SUM, etc)
+The window function is when you want to calculate: RANK, SUM, etc
 The window clause defines how to group/order the data for the calculation.
 
 
@@ -155,7 +177,6 @@ FROM fct_creator_content;
 LEAD() and LAG() are time-series window functions used to access data from rows that come after, or before the current row within a result set based on a specific column order.
 
   
-
 # RANK #
 
 SELECT 
@@ -366,7 +387,7 @@ By default, MySQL considers the semicolon ; as the end of a statement.
 But inside a stored procedure or function, you're going to use a bunch of semicolons to separate individual statements.
 So — you need to temporarily change the statement terminator to something else while you're defining the procedure/function
 
-  DELIMITER $$     -- Tell MySQL: "For now, don't treat semicolons as end of statement."
+  DELIMITER $$     -- Tell MySQL: "For now, don't treat semicolons as end of statement.
 
 CREATE FUNCTION my_function()
 RETURNS INT
@@ -404,27 +425,14 @@ WHERE orders.date > '2023-01-01';
 
 #### EXPLAIN ANALYZE ####
 
-The MySQL EXPLAIN ANALYZE command provides information about the query execution plan, including specifics about the optimizer's decisions, access methods, and estimated costs. 
+The MySQL EXPLAIN ANALYZE command provides information about the query execution plan, including specifics about the optimizers decisions, access methods, and estimated costs. 
   EXPLAIN ANALYZE is a useful tool for query performance study since it performs the query and offers runtime information, unlike EXPLAIN, which only presents the process plan without actually executing the query.
   
 EXPLAIN ANALYZE SELECT * FROM table_name WHERE condition;
 
 
   
-#### SQL INJECTION ####
-  
-
-
-
-
-
-
-
-
-
-
-
-
+#### SQL INJECTION ####  📝
   
 
 ###################################################################################################################################################
@@ -619,7 +627,7 @@ FROM linkedin_cte
 
 Select all the orders. For each order, show its ID, the total amount, and the percentage participation in all the sales. 
 Name the last column total_sales_participation. Round the percentages to two decimal points.
-To compute the percentage participation in all the sales, you'll have to divide the total_amount of the order by the sum of all the total amount across all the orders
+To compute the percentage participation in all the sales, youll have to divide the total_amount of the order by the sum of all the total amount across all the orders
 
 SELECT order_id, total_amount, 
 ROUND(total_amount * 100.0 / SUM(total_amount) OVER(), 2) as total_sales_participation
