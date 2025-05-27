@@ -89,9 +89,14 @@ This document consolidates key SQL concepts, common interview questions, and use
 * **SUBQUERIES**: Nested queries inside the main query.
 * **CTE**: Can be more readable and used multiple times in a query.
 
-### 📗 ISNULL vs COALESCE: 📝
-* **ISNULL**: Replaces `NULL` with a specified value, accepts two parameters.
-* **COALESCE**: Returns the first non-`NULL` value from a list of expressions, accepting multiple parameters.
+### 📗 HANDLE NULLS: 📝
+* **ISNULL**: Used in the WHERE clause to test for NULL values. It returns TRUE if the value is NULL, and FALSE otherwise.
+   * SELECT column_name FROM table_name WHERE column_name IS NULL;
+* **ISNOTNULL**: Used in the WHERE clause to test for non-NULL values. It returns TRUE if the value is not NULL, and FALSE otherwise.
+   * SELECT column_name FROM table_name WHERE column_name IS NOT NULL;
+* **COALESCE**: Returns the first non-NULL expression among its arguments. It can accept multiple parameters (expressions), making it more flexible than ISNULL.
+   * SELECT COALESCE(column1, column2, 'DefaultValue') FROM table_name;
+   * (If column1 is NULL, it tries column2; if both are NULL, it uses 'DefaultValue').
 
 ### 📗 INTERSECT vs INNER JOIN: 📝
 * **INTERSECT**: Returns common rows from two queries.
