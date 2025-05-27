@@ -5,20 +5,8 @@ This document consolidates key SQL concepts, common interview questions, and use
 
 ## Table of Contents
 1.  [Must Know Differences in SQL](#must-know-differences-in-sql)
-    * [RANK vs DENSE_RANK](#rank-vs-dense_rank)
-    * [HAVING vs WHERE Clause](#having-vs-where-clause)
-    * [UNION vs UNION ALL](#union-vs-union-all)
-    * [JOIN vs UNION](#join-vs-union)
-    * [DELETE vs DROP vs TRUNCATE](#delete-vs-drop-vs-truncate)
-    * [COUNT() vs COUNT(*)](#count-vs-count)
-    * [CTE vs TEMP TABLE](#cte-vs-temp-table)
-    * [SUBQUERIES vs CTE](#subqueries-vs-cte)
-    * [ISNULL vs COALESCE](#isnull-vs-coalesce)
-    * [INTERSECT vs INNER JOIN](#intersect-vs-inner-join)
-    * [LAG/LEAD vs BETWEEN WINDOW FRAME](#laglead-vs-between-window-frame)
-    * [CTE vs WINDOW FUNCTION](#cte-vs-window-function)
-    * [WINDOW CLAUSE vs WINDOW FUNCTION](#window-clause-vs-window-function)
-2.  [Useful Functions & Concepts](#useful-functions--concepts)
+
+2.  [Useful Functions & Concepts](#useful-functions)
     * [CTEs](#ctes)
     * [Window Functions](#window-functions)
         * [Basic Window Function - Rank](#basic-window-function---rank)
@@ -150,4 +138,222 @@ SELECT
     ORDER BY date
     ROWS BETWEEN 1 PRECEDING AND 1 PRECEDING
   ) AS one_month_diff
-FROM stock_prices;
+FROM stock_prices; 
+```
+
+### 📗 CTE vs WINDOW FUNCTION:
+
+ Use a CTE when:
+
+* You need to build an intermediate aggregated or filtered dataset
+* You have multi-step logic where step 1 feeds step 2
+* You’re reusing a result across multiple queries within a bigger one
+* You want to clean up deeply nested subqueries 
+
+Use a window function when:
+
+* You need running totals, rankings, moving averages
+* You want to calculate things like row_number, rank, dense_rank, lag, lead, sum over a partition
+* You need to keep all the individual rows intact while adding extra insights from other rows in their "window" (partition)
+
+``` sql
+WITH follower_ranks AS (
+  SELECT 
+    creator_id,
+    content_type,
+    new_followers_count,
+    RANK() OVER (PARTITION BY content_type ORDER BY new_followers_count DESC) AS rank_in_type
+  FROM fct_creator_content
+)
+SELECT * FROM follower_ranks
+WHERE rank_in_type = 1;
+```
+
+### 📗 WINDOW CLAUSE vs WINDOW FUNCTION:
+
+Window Function	A special type of function that performs a calculation across a set of rows related to the current row (the “window”)	RANK() OVER (...)
+Window Clause	The part inside the OVER (...) that defines how the “window” of rows is constructed 
+  — i.e. how to partition (group) and order rows for the window function	OVER (PARTITION BY content_type ORDER BY new_followers_count DESC)
+
+The window function is when you want to calculate: RANK, SUM, etc
+The window clause defines how to group/order the data for the calculation.
+
+# Useful Functions
+
+### CTEs 
+Def: 
+  
+### Windows Functions 
+
+Name of the window being referenced by the current window. The referenced window must be among the windows defined in the WINDOW clause.
+
+The other arguments are:
+* PARTITION BY that divides the query result set into partitions.
+* ORDER BY that defines the logical order of the rows within each partition of the result set.
+* ROWS/RANGE that limits the rows within the partition by specifying start and end points within the partition.
+    
+Window functions differ from regular aggregate functions as they perform operations across a set of table rows related to the current row without collapsing them into a single output row. 
+The `OVER` clause is crucial here, as it specifies the window over which the function operates.
+
+#### Basic Window Function - Rank 
+
+``` sql
+SELECT employee_id, salary,
+  RANK() OVER (ORDER BY salary DESC) AS salary_rank
+FROM employees;
+```
+
+### WINDOW Clause
+
+The `WINDOW` clause is used in conjunction with window functions like `ROW_NUMBER()`, `RANK()`, or `SUM()` to perform calculations over a specified set of rows. 
+It simplifies queries by allowing the reuse of window definitions across multiple functions.
+
+#### Sum with Windows Clause 
+
+``` sql
+SELECT employee_id, department_id, salary,
+       SUM(salary) OVER emp_window AS total_salary
+FROM employees
+WINDOW emp_window AS (PARTITION BY department_id ORDER BY salary);
+```
+
+### Lag & Lead Functions
+Description of time-series analysis functions for accessing adjacent rows.
+
+### ROWS BETWEEN Clause
+Explanation of frame specification for window functions.
+
+### Partitioning Data
+How PARTITION BY divides data into groups for window calculations.
+
+### Common Use Cases
+Typical scenarios where window functions provide value.
+
+### Performance Considerations
+Important notes about window function performance impacts.
+
+## Common Table Expressions (CTEs)
+
+### Basic CTE Structure
+Overview of CTE syntax and components.
+
+### Recursive CTEs
+
+A recursive CTE references itself. It returns the result subset, then it repeatedly (recursively) references itself, and stops when it returns all the results.
+
+##### SIMPLE EXAMPLE - Months of the Year:
+``` sql
+WITH RecursiveMonths AS (
+    SELECT
+        1 AS MonthNumber,
+        DATENAME(MONTH, CAST('2024-01-01' AS DATE)) AS MonthName   -- This is the first iteration (anchor member)
+
+    UNION ALL -- Then union all the rest of results
+
+    SELECT
+        MonthNumber + 1,
+        DATENAME(MONTH, DATEADD(MONTH, MonthNumber, '2024-01-01'))
+    FROM RecursiveMonths
+    WHERE MonthNumber < 12  -- Termination COndition
+)
+SELECT * FROM RecursiveMonths;
+```
+
+##### HARDER EXAMPLE Order a Company by hierarchy - Director at the Top:
+``` sql
+  WITH RECURSIVE company_hierarchy AS (
+  SELECT    id,
+            first_name,
+            last_name,
+            boss_id,
+        0 AS hierarchy_level
+  FROM employees
+  WHERE boss_id IS NULL
+  
+  UNION ALL
+  
+    SELECT  
+    		e.id,
+            e.first_name,
+            e.last_name,
+            e.boss_id,
+            hierarchy_level+1
+  FROM employees e, company_hierarchy ch
+  WHERE e.boss_id = ch.id
+ )
+ 
+SELECT ch.first_name AS employee_first_name,
+       ch.last_name AS employee_last_name,
+       CONCAT(e.first_name, " ", e.last_name)  AS boss_name,
+       hierarchy_level
+FROM company_hierarchy ch
+LEFT JOIN employees e
+ON ch.boss_id = e.id
+ORDER BY ch.hierarchy_level, ch.boss_id;
+``` 
+
+##### In 3rd example, I’ll be using the table cities_route, which contains data about Dutch cities:
+
+| city_from    | city_to       | distance |
+|--------------|---------------|----------|
+| Groningen    | Heerenveen    | 61.4     |
+| Groningen    | Harlingen     | 91.6     |
+| Harlingen    | Wieringerwerf | 52.3     |
+| Wieringerwerf| Hoorn         | 26.5     |
+| Hoorn        | Amsterdam     | 46.1     |
+| Amsterdam    | Haarlem       | 30.0     |
+| Heerenveen   | Lelystad      | 74.0     |
+| Lelystad     | Amsterdam     | 57.2     |
+
+Use this table to find all the possible routes from Groningen to Haarlem, showing the cities on the route and the total distance.
+
+Here’s the query to solve this problem:
+
+``` sql
+WITH RECURSIVE possible_route AS (
+
+  -- Anchor member
+  SELECT 
+    cd.city_to,
+    CONCAT(cd.city_from, '->', cd.city_to) AS route,
+    cd.distance
+  FROM city_distances cd
+  WHERE cd.city_from = 'Groningen'
+
+  UNION ALL
+
+  -- Recursive member
+  SELECT 
+    cd.city_to,   -- where you are now
+    CAST(CONCAT(pr.route, '->', cd.city_to) AS CHAR(1000)) AS route,  -- build the route
+    CAST((pr.distance + cd.distance) AS DECIMAL(10, 2)) -- sum the distance
+  FROM possible_route pr.  -- previous recursion result
+  INNER JOIN city_distances cd
+    ON cd.city_from = pr.city_to
+  WHERE pr.route NOT LIKE CONCAT('%', cd.city_to, '%') -- to avoid loops, you can track visited cities 
+
+)
+
+SELECT pr.route, pr.distance
+FROM possible_route pr
+WHERE pr.city_to = 'Haarlem'
+ORDER BY pr.distance;
+
+```
+
+### CTE vs Subqueries
+Comparison of these two query structuring approaches.
+
+### Multiple CTEs
+How to chain multiple CTEs in a single query.
+
+## Query Optimization
+
+### EXPLAIN Command
+How to analyze query execution plans.
+
+### Indexing Strategies
+Best practices for index creation with window functions.
+
+### Partitioning Large Datasets
+Techniques for improving performance on large tables.
