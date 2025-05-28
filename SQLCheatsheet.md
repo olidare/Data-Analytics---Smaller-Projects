@@ -4,9 +4,10 @@
 This document consolidates key SQL concepts, common interview questions, and useful functions, structured for easy reference and learning.
 
 ## Table of Contents
-1.  [Must Know Differences in SQL](#must-know-differences-in-sql)
+1. [Useful Resources](#useful-resources)
+2. [Must Know Differences in SQL](#must-know-differences-in-sql)
 
-2.  [Useful Functions & Concepts](#useful-functions)
+3.  [Useful Functions & Concepts](#useful-functions)
     * [CTEs](#ctes)
     * [Window Functions](#window-functions)
         * [Basic Window Function - Rank](#basic-window-function---rank)
@@ -32,7 +33,7 @@ This document consolidates key SQL concepts, common interview questions, and use
     * [EXPLAIN](#explain)
     * [EXPLAIN ANALYZE](#explain-analyze)
     * [SQL INJECTION](#sql-injection)
-3.  [Example Interview Questions](#example-interview-questions)
+4.  [Example Interview Questions](#example-interview-questions)
     * [Highest New Follower Growth per Content Type (May 2024)](#highest-new-follower-growth-per-content-type-may-2024)
     * [Average Marketing Spend per New Subscriber (Q1 2024)](#average-marketing-spend-per-new-subscriber-q1-2024)
     * [Customer Filtering Example](#customer-filtering-example)
@@ -49,8 +50,9 @@ This document consolidates key SQL concepts, common interview questions, and use
 
 ---
 
-## BASIC Qs:
+## Useful Resources
 * [TestGorilla SQL Basic Interview Questions](https://www.testgorilla.com/blog/sql-basic-interview-questions/)
+* [Linkedin FAANG SQL Topics](https://www.linkedin.com/posts/nidhisingh-dataanalyst_sql-activity-7333507346939170818-rWGq?utm_source=share&utm_medium=member_desktop&rcm=ACoAADK-O8gBFz5f8pbKwYgxlrOM_c8j4btoM28)
 
 ---
 
