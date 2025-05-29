@@ -15,7 +15,8 @@ Resources
  - Visualisations with MatPlotLib, Plotly and Seaborn
  
  #### sql_cheatsheet.sql
- - A collection of some of the better/ more challenging SQL I have written.
-
+ - Useful commands.
+ - Interview Questions.
+   
  #### splunk_cheetsheet.spl
  - Useful Splunk Searches and Unix commands to setup architecture.
