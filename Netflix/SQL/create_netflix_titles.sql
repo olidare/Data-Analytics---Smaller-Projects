@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS netflix_titles;
+
 CREATE TABLE netflix_titles (
     show_id VARCHAR(10) PRIMARY KEY,
     type VARCHAR(10) NULL,
