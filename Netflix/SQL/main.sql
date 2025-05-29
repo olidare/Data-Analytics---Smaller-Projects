@@ -183,6 +183,54 @@ ORDER BY COUNT(c.country) DESC LIMIT 10
 
 
 
+--3 for each year (as per date added to netflix), which director has maximum number of movies released
+
+WITH releases_by_year_cte AS (
+SELECT d.director,
+ YEAR(nx.date_added) as release_year,
+ COUNT(nx.show_id)  AS yearly_count,
+ RANK() OVER ( partition by YEAR(nx.date_added) order by COUNT(nx.show_id) desc ) as rn 
+FROM new_netflix_titles as nx
+INNER JOIN directors d ON nx.show_id = d.show_id
+GROUP BY d.director, YEAR(nx.date_added)
+ORDER BY yearly_count DESC
+)
+
+
+SELECT release_year, director, yearly_count
+FROM releases_by_year_cte
+WHERE rn = 1
+ORDER BY release_year desc
+
+
+
+
+-- For each year (based on date added to Netflix), find the director with most releases
+WITH director_yearly_counts AS 
+(
+    SELECT 
+        d.director,
+        YEAR(nx.date_added) AS added_year,
+        COUNT(*) AS movie_count,
+        RANK() OVER (
+            PARTITION BY YEAR(nx.date_added) 
+            ORDER BY COUNT(*) DESC
+        ) AS rank_by_count
+    FROM new_netflix_titles nx
+    INNER JOIN directors d ON nx.show_id = d.show_id
+    WHERE nx.date_added IS NOT NULL  
+    GROUP BY 
+        d.director, 
+        YEAR(nx.date_added)
+)
+SELECT 
+    added_year AS release_year,
+    director,
+    movie_count AS yearly_count
+FROM director_yearly_counts
+WHERE rank_by_count = 1  ORDER BY 
+    added_year DESC,      
+    movie_count DESC; 
 
 
 
