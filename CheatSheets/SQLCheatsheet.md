@@ -54,6 +54,8 @@ This document consolidates key SQL concepts, common interview questions, and use
 * [TestGorilla SQL Basic Interview Questions](https://www.testgorilla.com/blog/sql-basic-interview-questions/)
 * [Linkedin FAANG SQL Topics](https://www.linkedin.com/posts/nidhisingh-dataanalyst_sql-activity-7333507346939170818-rWGq?utm_source=share&utm_medium=member_desktop&rcm=ACoAADK-O8gBFz5f8pbKwYgxlrOM_c8j4btoM28)
 * [Linkedin 𝟭𝟬𝟬 𝗔𝗱𝘃𝗮𝗻𝗰𝗲𝗱 𝗦𝗤𝗟 𝗖𝗵𝗮𝗹𝗹𝗲𝗻𝗴𝗲𝘀](https://www.linkedin.com/posts/aishwarya-pani-63a476167_top-100-advanced-sql-q-a-activity-7332593835350380544-fql0?utm_source=share&utm_medium=member_desktop&rcm=ACoAADK-O8gBFz5f8pbKwYgxlrOM_c8j4btoM28)
+* [ Master SQL from Beginner to Advanced — All in One PDF!](https://www.linkedin.com/posts/parag-sharma-b2377a258_sql-activity-7334434754580099072-vCY6?utm_source=share&utm_medium=member_desktop&rcm=ACoAADK-O8gBFz5f8pbKwYgxlrOM_c8j4btoM28)
+
 
 ---
 
