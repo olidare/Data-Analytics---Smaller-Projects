@@ -357,13 +357,89 @@ Comparison of these two query structuring approaches.
 ### Multiple CTEs
 How to chain multiple CTEs in a single query.
 
+----
+
 ## Query Optimization
+
+### Indexing Strategies
+
+Indexing is a technique used in database management systems to improve the speed and efficiency of data retrieval operations. An index is a data structure that provides a quick way to look up rows in a table based on the values in one or more columns. Technically, an index is a data structure (usually a B-tree or a hash table) that stores the values of one or more columns in a way that allows for quick searches, sorting, and filtering.
+
+The index provides pointers to the actual rows in the database table where the data resides. For example, if many queries filter or sort by a specific column, indexing that column can improve performance.
+
+Best practices for index creation with window functions.
+
+
+#### Clustered Index
+
+#### Non-Clustered Index
+
+#### How to Build an Index in MYSQL
+
+---
+
+# When to Use Indexes in Databases
+
+## 1. High-Volume Read Operations  
+**Use Case:** Tables frequently queried for data retrieval (read-heavy applications).  
+**Why:** Indexes speed up data retrieval by avoiding full table scans.  
+**Example:** A table with millions of customer records where searches are often done by `customer_id` or `email`.  
+
+## 2. Frequent Filtering (WHERE Clauses)  
+**Use Case:** Columns often used in `WHERE` clauses.  
+**Why:** Indexes help quickly locate rows matching filter conditions.  
+**Example:** A table where queries frequently filter by `status`, `date`, or `category`.  
+
+## 3. Frequent Sorting (ORDER BY Clauses)  
+**Use Case:** Columns often used in `ORDER BY` for sorting.  
+**Why:** Indexes allow faster sorting, especially when combined with filtering.  
+**Example:** An orders table frequently sorted by `order_date` or `amount`.  
+
+## 4. JOIN Operations  
+**Use Case:** Columns used in `JOIN` operations (e.g., foreign keys).  
+**Why:** Indexes improve join performance by speeding up record matching.  
+**Example:** Joining `orders` and `customers` tables on `customer_id`.  
+
+## 5. Unique Constraints  
+**Use Case:** Columns requiring uniqueness (e.g., emails, usernames).  
+**Why:** Indexes enforce uniqueness by preventing duplicate values.  
+**Example:** An `email` column in a `users` table with a unique constraint.  
+
+## 6. Foreign Key Columns  
+**Use Case:** Columns defined as foreign keys.  
+**Why:** Indexes improve performance for lookups, updates, and deletions involving related tables.  
+**Example:** A `product_id` in `order_items` referencing `id` in `products`.  
+
+## 7. Large Tables  
+**Use Case:** Tables with millions of rows where full scans are expensive.  
+**Why:** As tables grow, indexes significantly reduce query costs.  
+**Example:** A `logs` table storing system logs with millions of records.  
+
+## 8. Aggregations (GROUP BY Clauses)  
+**Use Case:** Columns frequently used in `GROUP BY`.  
+**Why:** Indexes speed up grouping and aggregation operations.  
+**Example:** A `sales` table grouped by `region` or `product_category` for reports.  
+
+--- 
+
+### Key Notes:  
+- **Balance is crucial:** While indexes improve read performance, they slow down writes (INSERT/UPDATE/DELETE).  
+- **Monitor usage:** Not all columns need indexing—focus on high-impact queries.  
+
+
+#### When Not to Use Indexes
+While indexes are powerful, there are scenarios where they might not be beneficial:
+
+Low-Volume Tables: For small tables, the overhead of maintaining an index may outweigh the benefits, as full table scans are relatively cheap.
+Frequent Writes: Indexes can slow down INSERT, UPDATE, and DELETE operations because the index needs to be maintained along with the data.
+Low-Cardinality Columns: Columns with a small number of unique values (e.g., gender, status) might not benefit much from indexing, as the index may not significantly reduce the search space.
+Temporary Tables: Tables that are created and dropped frequently, especially if they are small, might not need indexing.
+
 
 ### EXPLAIN Command
 How to analyze query execution plans.
 
-### Indexing Strategies
-Best practices for index creation with window functions.
+
 
 ### Partitioning Large Datasets
 Techniques for improving performance on large tables.
