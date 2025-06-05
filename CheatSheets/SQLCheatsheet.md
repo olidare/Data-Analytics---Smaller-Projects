@@ -359,9 +359,9 @@ How to chain multiple CTEs in a single query.
 
 ----
 
-## Query Optimization
+# Query Optimization
 
-### Indexing Strategies
+## Indexing Strategies
 
 Indexing is a technique used in database management systems to improve the speed and efficiency of data retrieval operations. An index is a data structure that provides a quick way to look up rows in a table based on the values in one or more columns. Technically, an index is a data structure (usually a B-tree or a hash table) that stores the values of one or more columns in a way that allows for quick searches, sorting, and filtering.
 
@@ -370,15 +370,15 @@ The index provides pointers to the actual rows in the database table where the d
 Best practices for index creation with window functions.
 
 
-#### Clustered Index
+### Clustered Index
 
-#### Non-Clustered Index
+### Non-Clustered Index
 
-#### How to Build an Index in MYSQL
+### How to Build an Index in MYSQL
 
 ---
 
-# When to Use Indexes in Databases
+## When to Use Indexes in Databases
 
 ## 1. High-Volume Read Operations  
 **Use Case:** Tables frequently queried for data retrieval (read-heavy applications).  
@@ -427,13 +427,49 @@ Best practices for index creation with window functions.
 - **Monitor usage:** Not all columns need indexing—focus on high-impact queries.  
 
 
-#### When Not to Use Indexes
-While indexes are powerful, there are scenarios where they might not be beneficial:
+Here’s a clean and well-structured Markdown version of your content:
 
-Low-Volume Tables: For small tables, the overhead of maintaining an index may outweigh the benefits, as full table scans are relatively cheap.
-Frequent Writes: Indexes can slow down INSERT, UPDATE, and DELETE operations because the index needs to be maintained along with the data.
-Low-Cardinality Columns: Columns with a small number of unique values (e.g., gender, status) might not benefit much from indexing, as the index may not significantly reduce the search space.
-Temporary Tables: Tables that are created and dropped frequently, especially if they are small, might not need indexing.
+----------------
+
+# When **Not** to Use Indexes in Databases  
+
+While indexes improve query performance, they are not always beneficial. Below are scenarios where indexes may be unnecessary or even harmful:  
+
+## 1. **Low-Volume Tables**  
+**Scenario:** Small tables with few records.  
+**Why Avoid?**  
+- The overhead of maintaining an index may outweigh its benefits.  
+- Full table scans are already fast for small datasets.  
+**Example:** A `config` table with only 100 rows.  
+
+## 2. **Frequent Writes (INSERT/UPDATE/DELETE)**  
+**Scenario:** Tables with heavy write operations.  
+**Why Avoid?**  
+- Indexes slow down writes because the database must update both the data **and** the index.  
+- High write-load tables may suffer performance degradation.  
+**Example:** A high-traffic `audit_log` table with constant inserts.  
+
+## 3. **Low-Cardinality Columns**  
+**Scenario:** Columns with very few unique values (e.g., booleans, enums).  
+**Why Avoid?**  
+- Indexes on such columns don’t significantly reduce the search space.  
+- The query optimizer may ignore the index anyway.  
+**Example:** A `gender` column with only `M`/`F`/`Other` values.  
+
+## 4. **Temporary Tables**  
+**Scenario:** Short-lived tables (e.g., temp tables in sessions).  
+**Why Avoid?**  
+- Index creation overhead isn’t justified for temporary usage.  
+- Small temp tables can be scanned quickly without indexes.  
+**Example:** A transient `session_data` table dropped after use.  
+
+--------
+
+### **Additional Considerations**  
+- **Storage Overhead:** Indexes consume extra disk space.  
+- **Maintenance Cost:** Indexes require updates during DML operations.  
+- **Optimizer Behavior:** Sometimes, indexes are **not used** even if they exist (e.g., with functions on indexed columns like `WHERE UPPER(name) = 'ALICE'`).  
+
 
 
 ### EXPLAIN Command
