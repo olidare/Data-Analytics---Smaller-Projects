@@ -475,14 +475,147 @@ Indexing is a technique used in database management systems to improve the speed
 
 The index provides pointers to the actual rows in the database table where the data resides. For example, if many queries filter or sort by a specific column, indexing that column can improve performance.
 
-Best practices for index creation with window functions.
+* For unindexed data, if you need to check if a given value exists in the array, then you need to search through each of the array elements one by one and check whether the given value exists. O(n)
+* This is the simplest form of the B-tree. For a binary tree, we can use pointers instead of keeping data in a sorted array. Mathematically, we can prove that the worst-case search time for a binary tree is O(log(n)). 
+
+---
+
+## 📚 Clustered Index vs Non-Clustered Index
 
 
-### Clustered Index
+| Clustered Index                                                                             | Non-Clustered Index                                                                               |
+| :------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------ |
+| **Sorts and stores** the data rows physically in the table according to the index key.      | **Creates a separate structure** from the data rows. Contains pointers to the physical data rows. |
+| Only **one clustered index per table** (since data can only be physically ordered one way). | Can have **multiple non-clustered indexes per table**.                                            |
+| Faster for range queries and sorting by the index column(s).                                | Good for frequent lookups on columns not covered by the clustered index.                          |
+| The **primary key constraint** automatically creates a clustered index (if none exists).    | Created explicitly on any column(s) to speed up specific lookups.                                 |
 
-### Non-Clustered Index
+---
 
-### How to Build an Index in MYSQL
+## 📌 Clustered Index — Example
+
+### 🔍 Table: `Orders`
+
+```sql
+CREATE TABLE Orders (
+    order_id INT PRIMARY KEY,
+    customer_id INT,
+    order_date DATETIME,
+    total_amount DECIMAL(10,2)
+);
+```
+
+**By default:**
+
+* `order_id` is a **clustered index** (because it’s the primary key).
+
+**If you wanted to create a clustered index manually:**
+
+```sql
+CREATE CLUSTERED INDEX idx_order_date
+ON Orders (order_date);
+```
+
+🔸 This would **physically reorder the table data** by `order_date`.
+
+---
+
+## 📌 Non-Clustered Index — Example
+
+### 📌 Index to optimize this query:
+
+```sql
+SELECT order_id, total_amount
+FROM Orders
+WHERE customer_id = 12345
+ORDER BY order_date DESC
+LIMIT 10;
+```
+
+**Create a non-clustered index:**
+
+```sql
+CREATE NONCLUSTERED INDEX idx_customer_date
+ON Orders (customer_id, order_date DESC);
+```
+
+* This creates a **separate index structure** with pointers to the actual data rows.
+* The table’s physical order doesn’t change.
+* The query planner can now **seek** on `customer_id` and **order** by `order_date` efficiently.
+
+---
+
+## 📊 How to Check Which Index is Used
+
+**PostgreSQL:**
+
+```sql
+EXPLAIN ANALYZE
+SELECT order_id, total_amount
+FROM Orders
+WHERE customer_id = 12345
+ORDER BY order_date DESC
+LIMIT 10;
+```
+
+Check the output:
+
+* `Index Scan using idx_customer_date` ➝ index is being used.
+* `Seq Scan` ➝ full table scan, no index used.
+
+---
+
+## 📎 Forcing an Index (MySQL example)
+
+```sql
+SELECT order_id, total_amount
+FROM Orders FORCE INDEX (idx_customer_date)
+WHERE customer_id = 12345
+ORDER BY order_date DESC
+LIMIT 10;
+```
+
+---
+
+## 📌 Key Takeaways
+
+* **Clustered Index**
+
+  * Data physically ordered.
+  * Only one per table.
+  * Ideal for primary keys and range queries.
+
+* **Non-Clustered Index**
+
+  * Separate lookup structure.
+  * Can have multiple.
+  * Best for frequent lookups on non-primary key columns.
+
+* **Always check `EXPLAIN ANALYZE` to confirm index use.**
+
+---
+
+## 🔥 Composite Index Design Tip
+
+* **Index columns should match query filters & sort order.**
+* Most selective columns (filter-heavy) should come first.
+* Avoid including columns not used in `WHERE` or `ORDER BY` (extra bloat).
+
+Example:
+
+```sql
+CREATE NONCLUSTERED INDEX idx_customer_status_date
+ON Orders (customer_id, status, order_date DESC);
+```
+
+Optimizes:
+
+```sql
+SELECT *
+FROM Orders
+WHERE customer_id = 12345 AND status = 'Shipped'
+ORDER BY order_date DESC;
+```
 
 ---
 
@@ -654,9 +787,6 @@ How to analyze query execution plans.
 
 ### Partitioning Large Datasets
 Techniques for improving performance on large tables.
-
-
-
 
 ## Useful Functions
 
