@@ -479,3 +479,546 @@ How to analyze query execution plans.
 
 ### Partitioning Large Datasets
 Techniques for improving performance on large tables.
+
+
+
+Here's the text converted to Markdown format with titles, points, and SQL code blocks:
+
+```markdown
+# SQL Sheet
+
+## Basic Questions
+[SQL Basic Interview Questions](https://www.testgorilla.com/blog/sql-basic-interview-questions/)
+
+---
+
+## Must Know Differences in SQL
+
+### 📗 RANK vs DENSE_RANK
+- **RANK**: Provides a ranking with gaps if there are ties.
+- **DENSE_RANK**: Provides a ranking without gaps, even in the case of ties.
+
+### 📗 HAVING vs WHERE Clause
+- **WHERE**: Filters rows before grouping.
+- **HAVING**: Filters groups after the GROUP BY clause.
+
+### 📗 UNION vs UNION ALL
+- **UNION**: Removes duplicates and combines results.
+- **UNION ALL**: Combines results without removing duplicates.
+
+### 📗 JOIN vs UNION
+- **JOIN**: Combines columns from multiple tables.
+- **UNION**: Combines rows from multiple tables with similar structure.
+
+### 📗 DELETE vs DROP vs TRUNCATE
+- **DELETE**: Removes rows, with the option to filter.
+- **DROP**: Removes the entire table or database.
+- **TRUNCATE**: Deletes all rows but keeps the table structure.
+
+### 📗 COUNT() vs COUNT(*)
+- `COUNT(salary)`: Counts only rows where salary is not NULL
+- `COUNT(*)`: Counts total number of rows in the result set
+
+### 📗 CTE vs TEMP TABLE
+- **CTE**: Temporary result set used within a single query.
+- **TEMP TABLE**: Physical temporary table that persists for the session.
+
+### 📗 SUBQUERIES vs CTE
+- **SUBQUERIES**: Nested queries inside the main query.
+- **CTE**: Can be more readable and used multiple times in a query.
+
+### 📗 ISNULL vs COALESCE
+- **ISNULL**: Replaces NULL with a specified value, accepts two parameters.
+- **COALESCE**: Returns the first non-NULL value from a list of expressions, accepting multiple parameters.
+
+### 📗 INTERSECT vs INNER JOIN
+- **INTERSECT**: Returns common rows from two queries.
+- **INNER JOIN**: Combines matching rows from two tables based on a condition.
+
+### 📗 LAG/LEAD vs BETWEEN WINDOW FRAME
+
+| LAG/LEAD | ROWS BETWEEN ... |
+|----------|------------------|
+| Accesses a specific row at a fixed offset from the current row | Defines a frame (range of rows) to perform an aggregation over, relative to the current row |
+| Typically used to compare current vs previous/next value | Typically used for running totals, moving averages, cumulative metrics |
+| Works like: "give me the value 1 row back (or ahead)" | Works like: "calculate over a range of rows around me" |
+
+```sql
+SELECT
+  date,
+  close,
+  LAG(close) OVER (ORDER BY date) AS previous_close,
+  LAG(close, 3) OVER (ORDER BY date) AS three_months_ago_close,
+  close - LAG(close, 3) OVER (ORDER BY date) AS three_month_diff,
+  close - LAG(close) OVER (ORDER BY date) AS one_month_diff
+FROM stock_prices
+
+SELECT
+  date,
+  close,
+  FIRST_VALUE(close) OVER (
+    ORDER BY date 
+    ROWS BETWEEN 1 PRECEDING AND 1 PRECEDING
+  ) AS previous_close,
+  FIRST_VALUE(close) OVER (
+    ORDER BY date 
+    ROWS BETWEEN 3 PRECEDING AND 3 PRECEDING
+  ) AS three_months_ago_close,
+  close - FIRST_VALUE(close) OVER (
+    ORDER BY date 
+    ROWS BETWEEN 3 PRECEDING AND 3 PRECEDING
+  ) AS three_month_diff,
+  close - FIRST_VALUE(close) OVER (
+    ORDER BY date 
+    ROWS BETWEEN 1 PRECEDING AND 1 PRECEDING
+  ) AS one_month_diff
+FROM stock_prices
+```
+
+### 📗 CTE vs WINDOW FUNCTION
+
+**Use a CTE when:**
+* You need to build an intermediate aggregated or filtered dataset
+* You have multi-step logic where step 1 feeds step 2
+* You're reusing a result across multiple queries within a bigger one
+* You want to clean up deeply nested subqueries 
+
+**Use a window function when:**
+* You need running totals, rankings, moving averages
+* You want to calculate things like row_number, rank, dense_rank, lag, lead, sum over a partition
+* You need to keep all the individual rows intact while adding extra insights from other rows in their "window" (partition)
+
+```sql
+WITH follower_ranks AS (
+  SELECT 
+    creator_id,
+    content_type,
+    new_followers_count,
+    RANK() OVER (PARTITION BY content_type ORDER BY new_followers_count DESC) AS rank_in_type
+  FROM fct_creator_content
+)
+SELECT * FROM follower_ranks
+WHERE rank_in_type = 1;
+```
+
+### 📗 WINDOW CLAUSE vs WINDOW FUNCTION
+
+| Window Function | A special type of function that performs a calculation across a set of rows related to the current row (the "window") | `RANK() OVER (...)` |
+| Window Clause | The part inside the `OVER (...)` that defines how the "window" of rows is constructed - i.e. how to partition (group) and order rows for the window function | `OVER (PARTITION BY content_type ORDER BY new_followers_count DESC)` |
+
+---
+
+## Useful Functions
+
+### CTEs
+**Definition:** Common Table Expressions (CTEs) are temporary result sets that can be referenced within a SELECT, INSERT, UPDATE, or DELETE statement.
+
+### Window Functions
+Window functions differ from regular aggregate functions as they perform operations across a set of table rows related to the current row without collapsing them into a single output row. The `OVER` clause is crucial here, as it specifies the window over which the function operates.
+
+#### Basic Window Function - Rank
+```sql
+SELECT employee_id, salary,
+  RANK() OVER (ORDER BY salary DESC) AS salary_rank
+FROM employees;
+```
+
+#### Sum with Windows Clause
+```sql
+SELECT employee_id, department_id, salary,
+       SUM(salary) OVER emp_window AS total_salary
+FROM employees
+WINDOW emp_window AS (PARTITION BY department_id ORDER BY salary);
+```
+
+#### Running total of followers per content_type
+```sql
+SELECT 
+  content_type,
+  published_date,
+  new_followers_count,
+  SUM(new_followers_count) OVER (PARTITION BY content_type ORDER BY published_date) AS running_total_followers
+FROM fct_creator_content;
+```
+
+#### Lag & Lead
+LEAD() and LAG() are time-series window functions used to access data from rows that come after, or before the current row within a result set based on a specific column order.
+
+#### RANK
+```sql
+SELECT 
+ artist_name, 
+ concert_revenue, 
+ ROW_NUMBER() OVER (ORDER BY concert_revenue) AS row_num,
+ RANK() OVER (ORDER BY concert_revenue) AS rank_num,
+ DENSE_RANK() OVER (ORDER BY concert_revenue) AS dense_rank_num
+FROM concerts;
+```
+
+#### ROWS BETWEEN lower_bound AND upper_bound
+The bounds can be any of these five options:
+* UNBOUNDED PRECEDING - All rows before the current row.
+* n PRECEDING - n rows before the current row.
+* CURRENT ROW - Just the current row.
+* n FOLLOWING - n rows after the current row.
+* UNBOUNDED FOLLOWING - All rows after the current row.
+
+**Example 1:** Running total
+```sql
+SELECT date, revenue,
+    SUM(revenue) OVER (
+      ORDER BY date
+      ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) running_total
+FROM sales
+ORDER BY date;
+```
+
+**Example 2:** Three-days moving average temperature
+```sql
+SELECT city, date, temperature,
+      ROUND(AVG(temperature) OVER (
+        PARTITION BY city
+        ORDER BY date DESC
+        ROWS BETWEEN CURRENT ROW AND 2 FOLLOWING), 1) mov_avg_3d_city
+FROM weather
+ORDER BY city, date;
+```
+
+**Example 3:** Three-day running total precipitation
+```sql
+SELECT city, date, precipitation,
+  SUM(precipitation) OVER (
+    PARTITION BY city
+    ORDER BY date
+    ROWS 2 PRECEDING) running_total_3d_city
+FROM weather
+ORDER BY city, date;
+```
+
+**Example 4:** UNBOUNDED PRECEDING
+```sql
+SELECT social_network, date, new_subscribers,
+  SUM(new_subscribers) OVER (
+    PARTITION BY social_network
+    ORDER BY date
+    ROWS UNBOUNDED PRECEDING) running_total_network
+FROM subscribers
+ORDER BY social_network, date;
+```
+
+**Example 5:** FIRST_VALUE and LAST_VALUE
+```sql
+SELECT social_network, date, new_subscribers,
+  FIRST_VALUE(new_subscribers) OVER(
+    PARTITION BY social_network
+    ORDER BY date) AS first_day,
+  LAST_VALUE(new_subscribers) OVER(
+    PARTITION BY social_network
+    ORDER BY date
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS last_day
+FROM subscribers
+ORDER BY social_network, date;
+```
+
+### SELF JOINS
+
+### UNION
+
+### RECURSIVE CTE
+**Process:**
+1. Anchor Member Execution: The CTE starts its execution with the anchor member which is a non recursive query.
+2. Recursive Member Execution(Iterations): The recursive member mainly consists of the SELECT statement that references the CTE itself.
+3. Termination Condition Check: The termination condition is essential for the termination of the recursive query.
+4. Union Result Sets: The UNION ALL operator combines the results from the anchor member as well as the results obtained from all of the iterations.
+5. Return Final Result: Finally the result set is returned to the user.
+
+**Simple Example - Months of the Year:**
+```sql
+WITH RecursiveMonths AS (
+    SELECT
+        1 AS MonthNumber,
+        DATENAME(MONTH, CAST('2024-01-01' AS DATE)) AS MonthName
+
+    UNION ALL
+
+    SELECT
+        MonthNumber + 1,
+        DATENAME(MONTH, DATEADD(MONTH, MonthNumber, '2024-01-01'))
+    FROM RecursiveMonths
+    WHERE MonthNumber < 12
+)
+SELECT * FROM RecursiveMonths;
+```
+
+**Harder Example - Company Hierarchy:**
+```sql
+WITH RECURSIVE company_hierarchy AS (
+  SELECT id,
+        first_name,
+        last_name,
+        boss_id,
+        0 AS hierarchy_level
+  FROM employees
+  WHERE boss_id IS NULL
+  
+  UNION ALL
+  
+  SELECT e.id,
+        e.first_name,
+        e.last_name,
+        e.boss_id,
+        hierarchy_level+1
+  FROM employees e, company_hierarchy ch
+  WHERE e.boss_id = ch.id
+)
+ 
+SELECT ch.first_name AS employee_first_name,
+       ch.last_name AS employee_last_name,
+       CONCAT(e.first_name, " ", e.last_name) AS boss_name,
+       hierarchy_level
+FROM company_hierarchy ch
+LEFT JOIN employees e
+ON ch.boss_id = e.id
+ORDER BY ch.hierarchy_level, ch.boss_id;
+```
+
+### PIVOT
+The PIVOT operation is typically used when you need to convert row data into columns for better analytical insight.
+
+**Basic Example:**
+```sql
+SELECT 
+  department,
+  SUM(CASE WHEN month = 'Jan' THEN sales ELSE 0 END) AS Jan_Sales,
+  SUM(CASE WHEN month = 'Feb' THEN sales ELSE 0 END) AS Feb_Sales
+FROM sales_data
+GROUP BY department;
+```
+
+**Dynamic Example (when number of columns not known):**
+```sql
+SET @sql = NULL;
+SELECT
+  GROUP_CONCAT(DISTINCT
+    CONCAT(
+      'SUM(CASE WHEN month = ''',
+      month,
+      ''' THEN sales ELSE 0 END) AS ',
+      CONCAT(month, '_Sales')
+    )
+  ) INTO @sql
+FROM sales_data;
+
+SET @sql = CONCAT('SELECT department, ', @sql, ' FROM sales_data GROUP BY department');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+```
+
+### STORED PROCEDURE vs FUNCTION
+**Definitions:**
+- A stored procedure is a saved, precompiled block of SQL code that you can call and execute whenever you need it — optionally passing in parameters.
+- Functions are designed to encapsulate calculations or transformations and return the result.
+
+**Key Differences:**
+- Functions MUST return a value and cannot alter the data they receive as parameters
+- Functions are not allowed to change anything, must have at least one parameter
+- Stored procs do not have to have a parameter, can change database objects, and do not have to return a value
+
+**Procedure Example:**
+```sql
+CREATE PROCEDURE SelectAllCustomers @City nvarchar(30), @PostalCode nvarchar(10)
+AS
+SELECT * FROM Customers WHERE City = @City AND PostalCode = @PostalCode
+GO;
+
+EXEC SelectAllCustomers @City = 'London', @PostalCode = 'WA1 1DP';
+```
+
+**Function Example:**
+```sql
+DELIMITER $$
+CREATE FUNCTION calculate_engagement_score(
+  likes INT,
+  comments INT,
+  shares INT
+)
+RETURNS INT
+DETERMINISTIC
+BEGIN
+  DECLARE engagement_score INT;
+  SET engagement_score = (likes * 2) + (comments * 3) + (shares * 5);
+  RETURN engagement_score;
+END$$
+DELIMITER ;
+
+-- Usage:
+SELECT 
+  content_id,
+  content_type,
+  likes_count,
+  comments_count,
+  shares_count,
+  calculate_engagement_score(likes_count, comments_count, shares_count) AS engagement_score
+FROM fct_creator_content;
+```
+
+### DELIMITER
+When writing multi-statement SQL blocks like stored procedures or functions, you need to temporarily change the statement terminator.
+
+```sql
+DELIMITER $$     -- Tell MySQL: "For now, don't treat semicolons as end of statement"
+
+CREATE FUNCTION my_function()
+RETURNS INT
+BEGIN
+  DECLARE my_variable INT;
+  SET my_variable = 10;
+  RETURN my_variable;
+END$$           -- Here's the actual end of the entire function definition
+
+DELIMITER ;     -- Put it back to normal for regular SQL statements
+```
+
+### INDEXING
+
+### ANALYZE
+`ANALYZE TABLE` is typically used when there are significant changes in the data distribution within a table.
+
+```sql
+ANALYZE TABLE orders, customers;
+```
+
+### EXPLAIN
+The `EXPLAIN` statement in MySQL is a performance optimization tool used to provide insight into how MySQL executes a query.
+
+```sql
+EXPLAIN SELECT orders.order_id, customers.customer_name
+FROM orders
+JOIN customers ON orders.customer_id = customers.customer_id
+WHERE orders.date > '2023-01-01';
+```
+
+### EXPLAIN ANALYZE
+```sql
+EXPLAIN ANALYZE SELECT * FROM table_name WHERE condition;
+```
+
+### SQL INJECTION
+
+---
+
+## Example Interview Questions
+
+**Question 1:** For content published in May 2024, which creator IDs show the highest new follower growth within each content type?
+
+```sql
+WITH follower_growth AS (
+  SELECT 
+    fcc.creator_id,
+    dc.creator_name,
+    fcc.content_type,
+    SUM(fcc.new_followers_count) AS total_new_followers
+  FROM fct_creator_content AS fcc
+  INNER JOIN dim_creator AS dc 
+    ON fcc.creator_id = dc.creator_id
+  WHERE fcc.published_date BETWEEN '2024-05-01' AND '2024-05-31'
+  GROUP BY fcc.creator_id, dc.creator_name, fcc.content_type
+)
+
+SELECT 
+  creator_name,
+  content_type,
+  total_new_followers
+FROM (
+  SELECT 
+    creator_name,
+    content_type,
+    total_new_followers,
+    RANK() OVER (PARTITION BY content_type ORDER BY total_new_followers DESC) AS rn
+  FROM follower_growth
+) ranked
+WHERE rn = 1;
+```
+
+**Question 2:** Determine the average marketing spend per new subscriber for each country in Q1 2024
+
+```sql
+SELECT dc.country_name,
+  CEIL(SUM(fms.amount_spent) * 1.0 / NULLIF(SUM(fds.num_new_subscribers), 0)) AS marketing_spend_per_subscribers
+FROM fact_daily_subscriptions as fds 
+INNER JOIN dimension_country as dc ON fds.country_id = dc.country_id
+INNER JOIN fact_marketing_spend as fms ON fms.country_id = dc.country_id  
+WHERE fds.signup_date between '2024-01-01' and '2024-03-31' 
+AND fms.campaign_date between '2024-01-01' and '2024-03-31'  
+GROUP BY dc.country_name;
+```
+
+**Question 3:** Find customers who have purchased at least one product from every product category
+
+```sql
+WITH supercloud_cust AS (
+  SELECT 
+    customers.customer_id, 
+    COUNT(DISTINCT products.product_category) AS product_count
+  FROM customer_contracts AS customers
+  INNER JOIN products 
+    ON customers.product_id = products.product_id
+  GROUP BY customers.customer_id
+)
+
+SELECT customer_id
+FROM supercloud_cust
+WHERE product_count = (
+  SELECT COUNT(DISTINCT product_category) FROM products
+);
+```
+
+**Question 4:** Top 5 artists whose songs appear most frequently in the Top 10
+
+```sql
+WITH top_10_cte AS (
+  SELECT 
+    artists.artist_name,
+    DENSE_RANK() OVER (
+      ORDER BY COUNT(songs.song_id) DESC) AS artist_rank
+  FROM artists
+  INNER JOIN songs
+    ON artists.artist_id = songs.artist_id
+  INNER JOIN global_song_rank AS ranking
+    ON songs.song_id = ranking.song_id
+  WHERE ranking.rank <= 10
+  GROUP BY artists.artist_name
+)
+
+SELECT artist_name, artist_rank
+FROM top_10_cte
+WHERE artist_rank <= 5; 
+```
+
+**Question 5:** Calculating percentages within a window function
+
+```sql
+SELECT order_id, total_amount, 
+ROUND(total_amount * 100.0 / SUM(total_amount) OVER(), 2) as total_sales_participation
+FROM orders
+GROUP BY order_id;
+```
+
+**Question 6:** Year-over-Year Growth Rate
+
+```sql
+WITH cte as (
+SELECT Extract(YEAR FROM transaction_date) AS year,
+product_id,
+spend,
+LAG(spend) OVER (PARTITION BY product_id ORDER BY transaction_date) as prev_year_spend
+FROM user_transactions
+)
+
+SELECT Year, product_id, spend as curr_year_spend, prev_year_spend,
+ROUND(100*(spend-prev_year_spend)/prev_year_spend,2) as yoy_rate
+FROM cte;
+```
+```
