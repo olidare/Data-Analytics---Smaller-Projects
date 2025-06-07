@@ -151,10 +151,6 @@ Revises an initial probability in light of new evidence.
 **Caveats:**
 Requires accurate prior and conditional probabilities.
 
-Excellent idea — Bayes' theorem is a classic for analytics interviews, and it's especially valuable in scenarios involving medical testing (false positives), spam detection, and reliability predictions.
-
-Let me write you 3 progressively tougher examples, markdown-ready, with full problem statements, equations, and Python implementations:
-
 ---
 
 ## 📊 Bayes’ Theorem Interview-Style Questions
@@ -209,6 +205,8 @@ print(round(p_spam_given_flag, 4))  # e.g. 0.8182
 **Problem:**
 10% of website visitors are high-value customers. 60% of high-value visitors make a purchase, while only 5% of regular visitors do.
 If someone makes a purchase, what is the probability they were a high-value visitor?
+
+So this wants to know - What is P(High Value | Purchase) 
 
 **Given:**
 
