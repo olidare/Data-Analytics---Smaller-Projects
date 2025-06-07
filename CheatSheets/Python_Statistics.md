@@ -165,7 +165,9 @@ Let me write you 3 progressively tougher examples, markdown-ready, with full pro
 80% of emails are non-spam (ham). 20% are spam. A keyword detection tool flags 90% of spam emails but also incorrectly flags 5% of ham emails as spam.
 If an email is flagged, what’s the probability it’s actually spam?
 
-AKA what is Prob of flagged email given its a spam email:  P(Flag | Spam)
+AKA what is Prob of it being Spam given its flagged:  P(Flag | Spam)
+
+First you need to assign the correct Probabilities to what is already known.
 
 **Given:**
 
