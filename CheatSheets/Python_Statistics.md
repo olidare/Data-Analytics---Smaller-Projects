@@ -94,6 +94,34 @@ How likely event A happens if B is known to occur.
 **Caveats:**
 Dependent on accurate joint and marginal probability estimates.
 
+### 📌 Example: Online Purchases
+
+Let’s explore another example. Imagine you are a data professional working for an online retail store. You have data that tells you **20% of the customers who visit the store’s website make a purchase of \$100 or more**. If a customer spends \$100, they are eligible to receive a free gift card. The store randomly awards gift cards to **10% of the customers who spend at least \$100**.
+
+You want to calculate the probability that a customer spends \$100 and receives a gift card. Receiving a gift card depends on first spending \$100. So, this is a **conditional probability** because it deals with two dependent events.
+
+Let's apply the conditional probability formula:
+
+
+$P(A \text{ and } B) = P(A) \times P(B|A)$
+
+
+Where:
+- Event A = *spends \$100*
+- Event B = *receives a gift card*
+
+Given:
+- \(P(A) = 0.2\)
+- \(P(B|A) = 0.1\)
+
+Now substitute the values:
+
+$P(\$100 \text{ and gift card}) = 0.2 \times 0.1 = 0.02$
+
+**Interpretation:**  
+The probability of a customer spending \$100 or more **and** receiving a free gift card is **2%**.
+
+
 ---
 
 ## 🔄 Bayes' Theorem
@@ -103,6 +131,9 @@ A way to update probabilities as more information becomes available.
 
 **Equation:**
 $P(A|B) = \frac{P(B|A) \times P(A)}{P(B)}$
+
+**Alternatively:**
+$P(B|A) = \frac{P(A \text{ and } B)}{P(A)}$
 
 **Python Example:**
 
@@ -119,6 +150,145 @@ Revises an initial probability in light of new evidence.
 
 **Caveats:**
 Requires accurate prior and conditional probabilities.
+
+Excellent idea — Bayes' theorem is a classic for analytics interviews, and it's especially valuable in scenarios involving medical testing (false positives), spam detection, and reliability predictions.
+
+Let me write you 3 progressively tougher examples, markdown-ready, with full problem statements, equations, and Python implementations:
+
+---
+
+## 📊 Bayes’ Theorem Interview-Style Questions
+
+### 🟢 Easy: Email Spam Detection
+
+**Problem:**
+80% of emails are non-spam (ham). 20% are spam. A keyword detection tool flags 90% of spam emails but also incorrectly flags 5% of ham emails as spam.
+If an email is flagged, what’s the probability it’s actually spam?
+
+AKA what is Prob of flagged email given its a spam email:  P(Flag | Spam)
+
+**Given:**
+
+* $P(\text{Spam}) = 0.2$
+* $P(\text{Flag}|\text{Spam}) = 0.9$
+* $P(\text{Flag}|\text{Ham}) = 0.05$
+* $P(\text{Ham}) = 0.8$
+
+**Use Bayes' theorem:**
+
+$$
+P(\text{Spam}|\text{Flag}) = \frac{P(\text{Flag}|\text{Spam}) \times P(\text{Spam})}{P(\text{Flag})}
+$$
+
+Where:
+
+$$
+P(\text{Flag}) = P(\text{Flag}|\text{Spam}) \times P(\text{Spam}) + P(\text{Flag}|\text{Ham}) \times P(\text{Ham})
+$$
+
+**Python Code:**
+
+```python
+p_spam = 0.2
+p_flag_given_spam = 0.9
+p_flag_given_ham = 0.05
+p_ham = 0.8
+
+p_flag = (p_flag_given_spam * p_spam) + (p_flag_given_ham * p_ham)
+p_spam_given_flag = (p_flag_given_spam * p_spam) / p_flag
+
+print(round(p_spam_given_flag, 4))  # e.g. 0.8182
+```
+
+---
+
+### 🟡 Medium: Website Conversion Prediction
+
+**Problem:**
+10% of website visitors are high-value customers. 60% of high-value visitors make a purchase, while only 5% of regular visitors do.
+If someone makes a purchase, what is the probability they were a high-value visitor?
+
+**Given:**
+
+* $P(H) = 0.1$
+* $P(P|H) = 0.6$
+* $P(P|R) = 0.05$
+* $P(R) = 0.9$
+
+**Bayes' theorem:**
+
+$$
+P(H|P) = \frac{P(P|H) \times P(H)}{P(P)}
+$$
+
+Where:
+
+$$
+P(P) = P(P|H) \times P(H) + P(P|R) \times P(R)
+$$
+
+**Python Code:**
+
+```python
+p_H = 0.1
+p_P_given_H = 0.6
+p_P_given_R = 0.05
+p_R = 0.9
+
+p_P = (p_P_given_H * p_H) + (p_P_given_R * p_R)
+p_H_given_P = (p_P_given_H * p_H) / p_P
+
+print(round(p_H_given_P, 4))
+```
+
+---
+
+### 🔴 Hard: False Positive Rate in Medical Testing
+
+**Problem:**
+A disease affects 0.5% of the population. A test correctly identifies 99% of cases (sensitivity), but has a 2% false positive rate.
+If a person tests positive, what is the probability they actually have the disease?
+
+**Given:**
+
+* $P(D) = 0.005$
+* $P(Pos|D) = 0.99$
+* $P(Pos|ND) = 0.02$
+* $P(ND) = 0.995$
+
+**Bayes' theorem:**
+
+$$
+P(D|Pos) = \frac{P(Pos|D) \times P(D)}{P(Pos)}
+$$
+
+Where:
+
+$$
+P(Pos) = P(Pos|D) \times P(D) + P(Pos|ND) \times P(ND)
+$$
+
+**Python Code:**
+
+```python
+p_D = 0.005
+p_Pos_given_D = 0.99
+p_Pos_given_ND = 0.02
+p_ND = 0.995
+
+p_Pos = (p_Pos_given_D * p_D) + (p_Pos_given_ND * p_ND)
+p_D_given_Pos = (p_Pos_given_D * p_D) / p_Pos
+
+print(round(p_D_given_Pos, 4))  # e.g. 0.1980
+```
+
+**Interpretation:**
+Even with a good test, because the disease is rare, the chance of actually having it after a positive test is under **20%**. Classic *base rate fallacy* illustration.
+
+---
+
+✅ Would you like me to pop these straight into your markdown document structure under a **Bayes' Theorem Examples** section too?
+
 
 ---
 
