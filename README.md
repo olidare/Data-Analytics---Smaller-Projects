@@ -21,9 +21,25 @@ A place to contain smaller pieces of work done as part of my Data Analyst Learni
  - Data Manipulation
  - Visualisations with MatPlotLib, Plotly and Seaborn
  
- #### sql_cheatsheet.sql
+ #### sql_cheatsheet.md
+ - Full learning Resource.
  - Useful commands.
  - Interview Questions.
-   
+
+ #### Python_Statistics.md
+  - Document to cover Statistics useful for Data Analysis.
+  - Python Functions (Skikit) to conduct Statistical Analysis.
+ 
+ #### DataAnalystInterview.md
+ - Interview prep document - typical questions.
+ - Youtube Mock Interviews.
+
+ #### Databases.md
+ - More of a general Database learning tool.
+ - Relational vs Non-Relational
+ - Data Lake vs Warehouse
+ 
  #### splunk_cheetsheet.spl
  - Useful Splunk Searches and Unix commands to setup architecture.
+
+
